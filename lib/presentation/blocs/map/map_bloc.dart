@@ -1,6 +1,7 @@
 // presentation/blocs/map/map_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
+//import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../data/repositories/parking_repository.dart';
 import '../../../data/services/location_service.dart';
 import 'map_event.dart';
