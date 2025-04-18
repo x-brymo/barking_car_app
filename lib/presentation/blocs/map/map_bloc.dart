@@ -14,6 +14,12 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<LoadMap>(_onLoadMap);
     on<SelectParkingSpot>(_onSelectParkingSpot);
     on<RefreshParkingSpots>(_onRefreshParkingSpots);
+    on<GetCurrentLocation>(_onGetCurrentLocation);
+    on<FetchParkingSpots>(_onFetchParkingSpots);
+    on<AddParkingSpot>(_onAddParkingSpot);
+    on<CurrentLocationObtained>(_onCurrentLocationObtained);
+    //on<ShowAddParkingSpotDialog>(_onShowAddParkingSpotDialog);
+
   }
   
   Future<void> _onLoadMap(
@@ -73,4 +79,94 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       }
     }
   }
+  Future<void> _onGetCurrentLocation(
+    GetCurrentLocation event,
+    Emitter<MapState> emit,
+  ) async {
+    try {
+      final position = await _locationService.getCurrentLocation();
+      final currentLocation = LatLng(position.latitude, position.longitude);
+      emit(MapLoaded(
+        currentLocation: currentLocation,
+        parkingSpots: (state as MapLoaded).parkingSpots,
+        selectedParkingSpot: (state as MapLoaded).selectedParkingSpot,
+      ));
+    } catch (e) {
+      emit(MapError(message: e.toString()));
+    }
+  }
+  Future<void> _onFetchParkingSpots(
+    FetchParkingSpots event,
+    Emitter<MapState> emit,
+  ) async {
+    try {
+      final parkingSpots = await _parkingRepository.getParkingSpots();
+      emit(MapLoaded(
+        currentLocation: (state as MapLoaded).currentLocation,
+        parkingSpots: parkingSpots,
+        selectedParkingSpot: (state as MapLoaded).selectedParkingSpot,
+      ));
+    } catch (e) {
+      emit(MapError(message: e.toString()));
+    }
+  }
+  Future<void> _onAddParkingSpot(
+    AddParkingSpot event,
+    Emitter<MapState> emit,
+  ) async {
+    try {
+      final parkingSpot = await _parkingRepository.createParkingSpot(event.parkingSpot.toJson());
+      if (parkingSpot != null) {
+        final currentState = state;
+        if (currentState is MapLoaded) {
+          emit(MapLoaded(
+            currentLocation: currentState.currentLocation,
+            parkingSpots: [...currentState.parkingSpots, parkingSpot],
+            selectedParkingSpot: null,
+          ));
+        }
+      } else {
+        emit(MapError(message: 'Failed to add parking spot'));
+      }
+    } catch (e) {
+      emit(MapError(message: e.toString()));
+    }
+  }
+   Future<void> _onCurrentLocationObtained(
+    CurrentLocationObtained event,
+    Emitter<MapState> emit,
+  ) async {
+    try {
+      final position = await _locationService.getCurrentLocation();
+      final currentLocation = LatLng(position.latitude, position.longitude);
+      emit(MapLoaded(
+        currentLocation: currentLocation,
+        parkingSpots: (state as MapLoaded).parkingSpots,
+        selectedParkingSpot: (state as MapLoaded).selectedParkingSpot,
+      ));
+    } catch (e) {
+      emit(MapError(message: e.toString()));
+    }
+  }
+  // Future<void> _onShowAddParkingSpotDialog(
+  //   ShowAddParkingSpotDialog event,
+  //   Emitter<MapState> emit,
+  // ) async {
+  //   try {
+  //     // Show dialog to add parking spot
+  //     final newParkingSpot = await event.onAdd(event.(){});
+  //     if (newParkingSpot != null) {
+  //       final currentState = state;
+  //       if (currentState is MapLoaded) {
+  //         emit(MapLoaded(
+  //           currentLocation: currentState.currentLocation,
+  //           parkingSpots: [...currentState.parkingSpots, newParkingSpot],
+  //           selectedParkingSpot: null,
+  //         ));
+  //       }
+  //     }
+  //   } catch (e) {
+  //     emit(MapError(message: e.toString()));
+  //   }
+  // }
 }

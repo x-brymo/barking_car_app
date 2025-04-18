@@ -4,7 +4,6 @@ import '../../../data/models/parking_spot_model.dart';
 import '../../../presentation/blocs/map/map_bloc.dart';
 import '../../../presentation/blocs/map/map_event.dart';
 import '../../../presentation/blocs/map/map_state.dart';
-import '../../widgets/custom_button.dart';
 
 class ParkingManagementScreen extends StatelessWidget {
   const ParkingManagementScreen({super.key});

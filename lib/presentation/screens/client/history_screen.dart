@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../presentation/blocs/booking/booking_bloc.dart';
-import '../../../presentation/blocs/booking/booking_event.dart';
 import '../../../presentation/blocs/booking/booking_state.dart';
 import '../../widgets/booking_card.dart';
 

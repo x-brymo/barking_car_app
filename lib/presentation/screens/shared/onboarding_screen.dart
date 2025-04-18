@@ -1,7 +1,9 @@
 // presentation/screens/shared/onboarding_screen.dart
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import '../../../core/constants/assets_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../routes.dart';
 import '../../widgets/custom_button.dart';
@@ -16,22 +18,22 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  
+        
   final List<Map<String, String>> _pages = [
     {
       'title': 'Find Parking Spots',
       'description': 'Easily find available parking spots near you with our interactive map.',
-      'image': 'assets/images/onboarding1.png',
+      'image': AssetsConstants.findparking,
     },
     {
       'title': 'Book in Seconds',
       'description': 'Reserve your parking spot with just a few taps.',
-      'image': 'assets/images/onboarding2.png',
+      'image': AssetsConstants.bookingscand,
     },
     {
       'title': 'Track Your Bookings',
       'description': 'Keep track of all your parking bookings in one place.',
-      'image': 'assets/images/onboarding3.png',
+      'image': AssetsConstants.trackbooking,
     },
   ];
   
@@ -71,7 +73,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset(
+                        Lottie.asset(
                           _pages[index]['image']!,
                           height: 300,
                         ),

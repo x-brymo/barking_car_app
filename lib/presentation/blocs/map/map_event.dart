@@ -1,4 +1,6 @@
 // presentation/blocs/map/map_event.dart
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import '../../../data/models/parking_spot_model.dart';
 
 abstract class MapEvent {}
@@ -15,6 +17,16 @@ class SelectParkingSpot extends MapEvent {
 
 class RefreshParkingSpots extends MapEvent {}
 class FetchParkingSpots extends MapEvent {}
+class GetCurrentLocation extends MapEvent {
+  GetCurrentLocation();
+}
+class CurrentLocationObtained extends MapEvent {
+  final LatLng currentLocation;
+  
+  CurrentLocationObtained({
+    required this.currentLocation,
+  });
+}
 class AddParkingSpot extends MapEvent {
   final ParkingSpotModel parkingSpot;
   
