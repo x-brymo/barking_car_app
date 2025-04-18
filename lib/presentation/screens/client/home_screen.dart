@@ -1,9 +1,12 @@
 // CLIENT SCREENS
 // presentation/screens/client/home_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:latlong2/latlong.dart';
+
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/assets_constants.dart';
 import '../../../data/models/parking_spot_model.dart';
@@ -21,56 +24,42 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  GoogleMapController? _mapController;
-  Set<Marker> _markers = {};
+  late final MapController _mapController;
+  List<Marker> _markers = [];
   ParkingSpotModel? _selectedParkingSpot;
   bool _isLoading = true;
-  
+
   @override
   void initState() {
     super.initState();
-    // Load parking spots
-    context.read<MapBloc>().add((LoadMap()));
-  }
-  
-  void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
-    // Get current location
+    _mapController = MapController();
+    context.read<MapBloc>().add(LoadMap());
     context.read<MapBloc>().add(GetCurrentLocation());
   }
-  
+
   void _createMarkers(List<ParkingSpotModel> parkingSpots) {
     _markers = parkingSpots.map((spot) {
       return Marker(
-        markerId: MarkerId(spot.id),
-        position: spot.position,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-        onTap: () {
-          setState(() {
-            _selectedParkingSpot = spot;
-          });
-        },
-        infoWindow: InfoWindow(
-          title: spot.name,
-          snippet: '\$${spot.pricePerHour.toStringAsFixed(2)} / hr',
+        width: 50,
+        height: 50,
+        point: LatLng(spot.latitude, spot.longitude),
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _selectedParkingSpot = spot;
+            });
+          },
+          child: const Icon(Icons.location_on, color: Colors.red, size: 40),
         ),
       );
-    }).toSet();
-    
+    }).toList();
     setState(() {});
   }
-  
+
   void _moveToCurrentLocation(LatLng position) {
-    _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: position,
-          zoom: AppConstants.mapDefaultZoom,
-        ),
-      ),
-    );
+    _mapController.move(position, AppConstants.mapDefaultZoom);
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,55 +79,41 @@ class _HomeScreenState extends State<HomeScreen> {
       body: BlocConsumer<MapBloc, MapState>(
         listener: (context, state) {
           if (state is MapLoaded) {
-            setState(() {
-              _isLoading = false;
-            });
+            _isLoading = false;
             _createMarkers(state.parkingSpots);
-          }
-          if (state is MapLoaded) {
-                final currentState = state as MapLoaded;
-                final lat = currentState.currentLocation.latitude;
-              }
-          if (state is CurrentLocationObtained) {
-             final currentState = state as MapLoaded;
-            final l = currentState.currentLocation;
-            _moveToCurrentLocation(l);
-          }
-          
-          if (state is MapError) {
+            _moveToCurrentLocation(state.currentLocation);
+          } else if (state is MapError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
+              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
             );
           }
         },
         builder: (context, state) {
           return Stack(
             children: [
-              // Google Map
-              GoogleMap(
-                onMapCreated: _onMapCreated,
-                initialCameraPosition: const CameraPosition(
-                  target: LatLng(37.7749, -122.4194), // Default location (San Francisco)
-                  zoom: AppConstants.mapDefaultZoom,
+              FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: LatLng(30.0444, 31.2357), // Default: Cairo
+                  //initialZoom: AppConstants.mapDefaultZoom,
+                  //zoom: AppConstants.mapDefaultZoom,
+                  maxZoom: 18,
+                  minZoom: 10,
+                  keepAlive: true,
+                  onTap: (_, __) => setState(() => _selectedParkingSpot = null),
                 ),
-                markers: _markers,
-                myLocationEnabled: true,
-                myLocationButtonEnabled: true,
-                mapType: MapType.normal,
-                zoomControlsEnabled: false,
-                compassEnabled: true,
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.example.barking_car_app',
+                  ),
+                  MarkerLayer(markers: _markers),
+                ],
               ),
-              
-              // Loading indicator
+
               if (_isLoading)
-                const Center(
-                  child: CircularProgressIndicator(),
-                ),
-                
-              // Bottom sheet for selected parking spot
+                const Center(child: CircularProgressIndicator()),
+
               if (_selectedParkingSpot != null)
                 Positioned(
                   left: 0,
@@ -148,10 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
@@ -162,34 +134,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Title and close button
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               _selectedParkingSpot!.name,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             IconButton(
                               icon: const Icon(Icons.close),
-                              onPressed: () {
-                                setState(() {
-                                  _selectedParkingSpot = null;
-                                });
-                              },
+                              onPressed: () => setState(() => _selectedParkingSpot = null),
                             ),
                           ],
                         ),
-                        
                         const SizedBox(height: 10),
-                        
-                        // Address
                         Row(
                           children: [
                             const Icon(Icons.location_on, color: Colors.grey),
@@ -197,17 +157,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             Expanded(
                               child: Text(
                                 _selectedParkingSpot!.address,
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                ),
+                                style: const TextStyle(color: Colors.grey),
                               ),
                             ),
                           ],
                         ),
-                        
                         const SizedBox(height: 10),
-                        
-                        // Price
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
@@ -216,21 +171,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           child: Text(
                             '\$${_selectedParkingSpot!.pricePerHour.toStringAsFixed(2)} / hour',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
                           ),
                         ),
-                        
                         const SizedBox(height: 20),
-                        
-                        // Book button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              // Navigate to booking screen with selected parking spot
                               Navigator.of(context).pushNamed(
                                 Routes.booking,
                                 arguments: _selectedParkingSpot,
