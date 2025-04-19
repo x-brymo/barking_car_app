@@ -21,7 +21,7 @@ class UserModel {
       id: json['user_id'] ?? '' ,
       email: json['email']?? '',
       fullName: json['full_name']?? '',
-      avatar: json['avatar'],
+      avatar: json['avatar_url'],
       role: json['role'] ?? 'client',
       createdAt: DateTime.parse(json['created_at']?? ''),
     );
@@ -32,7 +32,7 @@ class UserModel {
       'user_id': id,
       'email': email,
       'full_name': fullName,
-      'avatar': avatar,
+      'avatar_url': avatar,
       'role': role,
       'created_at': createdAt.toIso8601String(),
     };

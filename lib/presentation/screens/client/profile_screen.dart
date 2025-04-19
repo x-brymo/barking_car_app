@@ -1,3 +1,5 @@
+import 'package:barking_car_app/data/models/user_model.dart';
+import 'package:barking_car_app/presentation/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../presentation/blocs/auth/auth_bloc.dart';
@@ -26,9 +28,9 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 40,
-                    backgroundImage: AssetImage('assets/images/logo.png'),
+                    backgroundImage: AssetImage("${state.user.avatar}"),
                   ),
                   const SizedBox(height: 16),
                   Text(user.fullName,
@@ -40,7 +42,7 @@ class ProfileScreen extends StatelessWidget {
                   CustomButton(
                     text: "Edit Profile",
                     onPressed: () {
-                      // ممكن تفتح صفحة تعديل البيانات
+                     
                     },
                   ),
                   const Spacer(),
@@ -59,4 +61,20 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+  
+  Widget _editProfile(UserModel user){
+    final fullNameController = TextEditingController(text: user.fullName);
+    final emailController = TextEditingController(text: user.email);
+    final roleController = TextEditingController(text: user.role);
+    //final emailController = TextEditingController(text: user.email);
+    return Column(
+      children: [
+        CustomTextField(label: user.fullName, controller: fullNameController),
+        CustomTextField(label: user.email, controller: emailController),
+        CustomTextField(label: user.role, controller: roleController),
+
+      ]);
+  }
+
+
 }

@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
+  final String? initLab;
   final String? hint;
   final TextEditingController controller;
   final bool obscureText;
@@ -22,6 +23,7 @@ class CustomTextField extends StatelessWidget {
     this.validator,
     this.maxLines = 1,
     this.suffixIcon,
+    this.initLab
   });
 
   @override
@@ -44,6 +46,8 @@ class CustomTextField extends StatelessWidget {
           keyboardType: keyboardType,
           validator: validator,
           maxLines: maxLines,
+          initialValue: initLab,
+          textInputAction: TextInputAction.next,
           decoration: InputDecoration(
             hintText: hint,
             suffixIcon: suffixIcon,
