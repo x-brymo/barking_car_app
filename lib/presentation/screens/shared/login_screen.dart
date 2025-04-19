@@ -10,7 +10,7 @@ import '../../../presentation/widgets/custom_text_field.dart';
 import '../../../routes.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -158,10 +158,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         // Navigate to forgot password screen
                       },
-                      child: const Text('Forgot Password?'),
                       style: TextButton.styleFrom(
                         foregroundColor: AppTheme.primaryColor,
                       ),
+                      child: const Text('Forgot Password?'),
                     ),
                   ),
                   const SizedBox(height: 30),
