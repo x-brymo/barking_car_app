@@ -80,22 +80,29 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       }
     }
   }
-  Future<void> _onGetCurrentLocation(
-    GetCurrentLocation event,
-    Emitter<MapState> emit,
-  ) async {
-    try {
-      final position = await _locationService.getCurrentLocation();
-      final currentLocation = LatLng(position.latitude, position.longitude);
+ Future<void> _onGetCurrentLocation(
+  GetCurrentLocation event,
+  Emitter<MapState> emit,
+) async {
+  try {
+    final position = await _locationService.getCurrentLocation();
+    final currentLocation = LatLng(position.latitude, position.longitude);
+    
+    final currentState = state;
+    if (currentState is MapLoaded) {
       emit(MapLoaded(
         currentLocation: currentLocation,
-        parkingSpots: (state as MapLoaded).parkingSpots,
-        selectedParkingSpot: (state as MapLoaded).selectedParkingSpot,
+        parkingSpots: currentState.parkingSpots,
+        selectedParkingSpot: currentState.selectedParkingSpot,
       ));
-    } catch (e) {
-      emit(MapError(message: e.toString()));
+    } else {
+      // يمكن إضافة حالة أخرى إذا كانت البيانات غير جاهزة بعد
+      emit(MapError(message: "Data is not ready"));
     }
+  } catch (e) {
+    emit(MapError(message: e.toString()));
   }
+}
   Future<void> _onFetchParkingSpots(
     FetchParkingSpots event,
     Emitter<MapState> emit,

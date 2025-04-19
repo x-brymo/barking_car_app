@@ -1,4 +1,5 @@
 // presentation/screens/shared/login_screen.dart
+import 'package:barking_car_app/core/extensions/extension_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_theme.dart';
@@ -21,53 +22,55 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
-  
+
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
         LoginRequested(
           email: _emailController.text.trim(),
-          password: _passwordController.text,
+          password: _passwordController.text.trim(),
         ),
       );
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoading) {
-            setState(() {
-              _isLoading = true;
-            });
+            setState(() => _isLoading = true);
           } else {
-            setState(() {
-              _isLoading = false;
-            });
-            
-            if (state is Authenticated) {
+            setState(() => _isLoading = false);
+          }
+
+          if (state is Authenticated) {
+            Future.microtask(() {
               if (state.isAdmin) {
-                Navigator.of(context).pushReplacementNamed(Routes.adminDashboard);
+                Navigator.of(
+                  context,
+                ).pushReplacementNamed(Routes.adminDashboard);
               } else {
                 Navigator.of(context).pushReplacementNamed(Routes.clientHome);
               }
-            } else if (state is AuthError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
+            });
+          } else if (state is AuthError) {
+            String errorMsg =
+                state.message.toLowerCase().contains("invalid")
+                    ? "Email or password is incorrect"
+                    : state.message;
+
+           WidgetsBinding.instance.addPostFrameCallback((_) {
+              sDE(context, "Login Failed", errorMsg);
+            });
           }
         },
         child: SafeArea(
@@ -99,19 +102,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Title
                   const Text(
                     'Welcome Back',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 10),
                   const Text(
                     'Sign in to continue',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 50),
@@ -126,7 +123,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
                       }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                      if (!RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      ).hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
@@ -138,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _passwordController,
                     label: 'Password',
                     hint: 'Enter your password',
-                   // prefixIcon: Icons.lock,
+                    // prefixIcon: Icons.lock,
                     obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -164,15 +163,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text('Forgot Password?'),
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 5),
                   // Login button
                   CustomButton(
                     text: 'Login',
-                    onPressed: 
-                    _isLoading ? (){} : _handleLogin,
+                    onPressed: _isLoading ? () {} : _handleLogin,
                     isLoading: _isLoading,
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 10),
                   // Register link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -182,7 +180,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(color: Colors.grey),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.of(context).pushReplacementNamed(Routes.clientHome),
+                        onTap:
+                            () => Navigator.of(
+                              context,
+                            ).pushReplacementNamed(Routes.register),
                         child: const Text(
                           'Register',
                           style: TextStyle(
@@ -200,4 +201,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }}
+  }
+}

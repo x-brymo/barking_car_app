@@ -1,4 +1,5 @@
 // presentation/screens/shared/register_screen.dart
+import 'package:barking_car_app/core/extensions/extension_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_theme.dart';
@@ -33,8 +34,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
   
-  void _handleRegister() {
+  void _handleRegister() async{
     if (_formKey.currentState!.validate()) {
+      print("Registering...");
+      Future.delayed(Duration(seconds: 5) );
       context.read<AuthBloc>().add(
         RegisterRequested(
           email: _emailController.text.trim(),
@@ -63,15 +66,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               if (state.isAdmin) {
                 Navigator.of(context).pushReplacementNamed(Routes.adminDashboard);
               } else {
-                Navigator.of(context).pushReplacementNamed(Routes.clientHome);
+                Navigator.of(context).pushReplacementNamed(Routes.login);
               }
             } else if (state is AuthError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                ),
-              );
+             sDE(context,"Fetching Error",state.message);
             }
           }
         },

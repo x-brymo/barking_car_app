@@ -7,9 +7,12 @@ class AppConstants {
   // Roles
   static const String roleClient = 'client';
   static const String roleAdmin = 'admin';
+  static const String roleManager = 'manager';
   
   // Supabase tables
-  static const String usersTable = 'users';
+  static const String usersTable = 'profiles';
   static const String parkingSpotsTable = 'parking_spots';
   static const String bookingsTable = 'bookings';
+  // supabaseRedirectUrl
+  static const String supabaseRedirectUrl = 'io.supabase.barkingcar://login-callback';
 }

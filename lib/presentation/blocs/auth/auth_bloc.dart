@@ -1,9 +1,10 @@
 // Now, let's implement the BLoC classes
 // presentation/blocs/auth/auth_bloc.dart
+import 'package:barking_car_app/presentation/blocs/auth/auth_result.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/repositories/auth_repository.dart';
 import 'auth_event.dart';
-import 'auth_state.dart';
+import 'auth_state.dart' hide AuthSuccess;
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
@@ -35,22 +36,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
   
   Future<void> _onLoginRequested(
-    LoginRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(AuthLoading());
-    try {
-      final user = await _authRepository.signIn(event.email, event.password);
-      if (user != null) {
-        final role = await _authRepository.getUserRole();
-        emit(Authenticated(user: user, isAdmin: role == 'admin'));
-      } else {
-        emit(AuthError(message: 'Invalid credentials'));
+  LoginRequested event,
+  Emitter<AuthState> emit,
+) async {
+  emit(AuthLoading());
+  final result = await _authRepository.signIn(event.email, event.password);
+
+      if (result is AuthSuccess) {
+        emit(Authenticated(user: result.user, isAdmin: result.user.role == 'admin'));
+
+      } else if (result is AuthFailure) {
+        emit(AuthError(message: result.message));
       }
-    } catch (e) {
-      emit(AuthError(message: e.toString()));
-    }
-  }
+}
+
   // presentation/blocs/auth/auth_bloc.dart (continued)
   Future<void> _onRegisterRequested(
     RegisterRequested event,
@@ -66,6 +65,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (user != null) {
         emit(Authenticated(user: user, isAdmin: false));
       } else {
+        print(state.toString());
         emit(AuthError(message: 'Registration failed'));
       }
     } catch (e) {

@@ -1,6 +1,8 @@
 // Let's implement the repositories
 // data/repositories/auth_repository.dart
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../presentation/blocs/auth/auth_result.dart';
 import '../services/supabase_service.dart';
 import '../models/user_model.dart';
 
@@ -15,7 +17,41 @@ class AuthRepository {
     if (user != null) {
       try {
         final userData = await _supabaseService.fetchUserProfile(user.id);
-        return UserModel.fromJson(userData);
+        return UserModel.fromJson(userData!);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+  Future<bool> checkEmailConfirmation() async {
+    final user = _supabaseService.client.auth.currentUser;
+    return user?.emailConfirmedAt != null;
+  }
+  Future<void> resendConfirmationEmail() async {
+    final user = _supabaseService.client.auth.currentUser;
+    if (user != null) {
+      await _supabaseService.client.auth.resend(email: user.email!, type: OtpType.email);
+    }
+  }
+  Future<void> confirmEmail(String token) async {
+    await _supabaseService.client.auth.verifyOTP(token: token, type: OtpType.email);
+  }
+  Future<void> resetPassword(String email) async {
+    await _supabaseService.client.auth.resetPasswordForEmail(email);
+  }
+  Future<void> changePassword(String newPassword) async {
+    final user = _supabaseService.client.auth.currentUser;
+    if (user != null) {
+      await _supabaseService.client.auth.updateUser(UserAttributes(password: newPassword));
+    }
+  }
+  Future<String?> getRoleUser()async{
+    final user = _supabaseService.client.auth.currentUser;
+    if (user != null) {
+      try {
+        final userData = await _supabaseService.fetchUserProfile(user.id);
+        return userData!['role'];
       } catch (e) {
         return null;
       }
@@ -23,28 +59,38 @@ class AuthRepository {
     return null;
   }
   
-  Future<UserModel?> signIn(String email, String password) async {
-    try {
-      final response = await _supabaseService.signIn(
-        email: email,
-        password: password,
-      );
-      
-      if (response.user != null) {
-        final userData = await _supabaseService.fetchUserProfile(response.user!.id);
+Future<AuthResult> signIn(String email, String password) async {
+  try {
+    final response = await _supabaseService.signIn(
+      email: email,
+      password: password,
+    );
+
+    if (response.user != null) {
+      final userData = await _supabaseService.fetchUserProfile(response.user!.id);
+      if (userData != null) {
         final user = UserModel.fromJson(userData);
-        
-        // Store user data in secure storage
         await _secureStorage.write(key: 'user_id', value: user.id);
         await _secureStorage.write(key: 'user_role', value: user.role);
-        
-        return user;
+        return AuthSuccess(user);
+      } else {
+        return AuthFailure("User profile not found.");
       }
-      return null;
-    } catch (e) {
-      return null;
+    } else {
+      return AuthFailure("User not found.");
     }
+
+  } catch (e, stackTrace) {
+  print("❌ SignIn Error: ${e.toString()}");
+  print("🧵 StackTrace: $stackTrace");
+
+  if (e.toString().contains("Email not confirmed")) {
+    return AuthFailure("Please confirm your email.");
   }
+
+  return AuthFailure("Something went wrong: ${e.toString()}");
+}}
+
   
   Future<UserModel?> signUp(String email, String password, String fullName) async {
     try {
@@ -53,16 +99,12 @@ class AuthRepository {
         password: password,
         fullName: fullName,
       );
+     
       
       if (response.user != null) {
-        // User data will be created through a Supabase trigger
-        // We'll wait for a moment and then fetch the user data
         await Future.delayed(const Duration(seconds: 2));
-        
         final userData = await _supabaseService.fetchUserProfile(response.user!.id);
-        final user = UserModel.fromJson(userData);
-        
-        // Store user data in secure storage
+        final user = UserModel.fromJson(userData!);
         await _secureStorage.write(key: 'user_id', value: user.id);
         await _secureStorage.write(key: 'user_role', value: user.role);
         
@@ -70,6 +112,7 @@ class AuthRepository {
       }
       return null;
     } catch (e) {
+      print("Error When SignUP User:${e.toString()}");
       return null;
     }
   }
