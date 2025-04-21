@@ -74,10 +74,10 @@ final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
           return response;
       }
         final user = UserModel.fromJson(res);
-        await _secureStorage.write(key: 'user_id', value: user.id);
+        await _secureStorage.write(key: 'user_id', value: user.userId);
        await _secureStorage.write(key: 'user_role', value: user.role);
         print("User Role: ${user.role}");
-        print("User ID: ${user.id}");
+        print("User ID: ${user.userId}");
     }
     return response;
   }

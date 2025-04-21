@@ -8,6 +8,7 @@ class CustomTextField extends StatelessWidget {
   final String? hint;
   final TextEditingController controller;
   final bool obscureText;
+  final bool? readOnly;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
   final int? maxLines;
@@ -23,7 +24,8 @@ class CustomTextField extends StatelessWidget {
     this.validator,
     this.maxLines = 1,
     this.suffixIcon,
-    this.initLab
+    this.initLab,
+    this.readOnly = false,
   });
 
   @override
@@ -46,6 +48,7 @@ class CustomTextField extends StatelessWidget {
           keyboardType: keyboardType,
           validator: validator,
           maxLines: maxLines,
+          readOnly: readOnly!,
           initialValue: initLab,
           textInputAction: TextInputAction.next,
           decoration: InputDecoration(

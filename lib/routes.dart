@@ -34,7 +34,7 @@ class Routes {
       clientHome: (context) => const HomeScreen(),
       booking: (context) =>  BookingScreen(spot: spot),
       history: (context) => const HistoryScreen(),
-      profile: (context) => const ProfileScreen(),
+      profile: (context) =>  ProfileScreen(),
       adminDashboard: (context) => const DashboardScreen(),
       parkingManagement: (context) => const ParkingManagementScreen(),
     };

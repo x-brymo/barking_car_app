@@ -70,7 +70,7 @@ Future<AuthResult> signIn(String email, String password) async {
       final userData = await _supabaseService.fetchUserProfile(response.user!.id);
       if (userData != null) {
         final user = UserModel.fromJson(userData);
-        await _secureStorage.write(key: 'user_id', value: user.id);
+        await _secureStorage.write(key: 'user_id', value: user.userId);
         await _secureStorage.write(key: 'user_role', value: user.role);
         return AuthSuccess(user);
       } else {
@@ -99,18 +99,8 @@ Future<AuthResult> signIn(String email, String password) async {
         password: password,
         fullName: fullName,
       );
-     
-      
-      if (response.user != null) {
-        await Future.delayed(const Duration(seconds: 2));
-        final userData = await _supabaseService.fetchUserProfile(response.user!.id);
-        final user = UserModel.fromJson(userData!);
-        await _secureStorage.write(key: 'user_id', value: user.id);
-        await _secureStorage.write(key: 'user_role', value: user.role);
-        
-        return user;
-      }
-      return null;
+      print(response.toString());
+       return null;
     } catch (e) {
       print("Error When SignUP User:${e.toString()}");
       return null;

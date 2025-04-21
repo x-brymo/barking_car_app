@@ -95,7 +95,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoading());
       try {
         final success = await _authRepository.updateProfile(
-          currentState.user.id,
+          currentState.user.userId,
           event.userData,
         );
         if (success) {

@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     //context.read<MapBloc>().add(GetCurrentLocation());
   }
 
-  void _createMarkers(List<ParkingSpotModel> parkingSpots) {
+  Future<void> _createMarkers(List<ParkingSpotModel> parkingSpots) async {
     _markers =
         parkingSpots.map((spot) {
           return Marker(
@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  void _moveToCurrentLocation(LatLng position) {
+  Future<void> _moveToCurrentLocation(LatLng position) async {
     _mapController.move(position, AppConstants.mapDefaultZoom);
   }
 
@@ -62,8 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-       
-        backgroundColor: Colors.transparent,
+        // backgroundColor: Colors.transparent,
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
@@ -82,13 +81,17 @@ class _HomeScreenState extends State<HomeScreen> {
             if (_isLoading) {
               _isLoading = false;
               // فلترة القريبين فقط
-  final nearbySpots = filterNearbySpots(
-    state.parkingSpots,
-    state.currentLocation,
-  );
+              final nearbySpots = filterNearbySpots(
+                state.parkingSpots,
+                state.currentLocation,
+              );
 
-  _createMarkers(nearbySpots); // نعرضهم على الماب
-  _moveToCurrentLocation(state.currentLocation); // نروح للمكان الحالي
+              Future.wait([
+                _createMarkers(nearbySpots), // نعرضهم على الماب
+                _moveToCurrentLocation(
+                  state.currentLocation,
+                ), // نروح للمكان الحالي
+              ]);
             }
           } else if (state is MapError) {
             print("Map Error: ${state.message}");
@@ -222,29 +225,28 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-  onPressed: () {
-    context.read<MapBloc>().add(GetCurrentLocation());
-    context.read<MapBloc>().add(FetchParkingSpots());
-  },
-  child: const Icon(Icons.search),
-),
+        onPressed: () {
+          context.read<MapBloc>().add(GetCurrentLocation());
+          context.read<MapBloc>().add(FetchParkingSpots());
+        },
+        child: const Icon(Icons.search),
+      ),
     );
-    
   }
- List<ParkingSpotModel> filterNearbySpots(
-  List<ParkingSpotModel> spots,
-  LatLng currentLocation, {
-  double maxDistanceKm = 2.0,
-}) {
-  final distance = Distance();
-  return spots.where((spot) {
-    final d = distance.as(
-      LengthUnit.Kilometer,
-      currentLocation,
-      LatLng(spot.latitude, spot.longitude),
-    );
-    return d <= maxDistanceKm;
-  }).toList();
-}
 
+  List<ParkingSpotModel> filterNearbySpots(
+    List<ParkingSpotModel> spots,
+    LatLng currentLocation, {
+    double maxDistanceKm = 2.0,
+  }) {
+    final distance = Distance();
+    return spots.where((spot) {
+      final d = distance.as(
+        LengthUnit.Kilometer,
+        currentLocation,
+        LatLng(spot.latitude, spot.longitude),
+      );
+      return d <= maxDistanceKm;
+    }).toList();
+  }
 }
