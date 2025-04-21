@@ -55,17 +55,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     RegisterRequested event,
     Emitter<AuthState> emit,
   ) async {
+    var ex;
     emit(AuthLoading());
     try {
       final user = await _authRepository.signUp(
         event.email,
         event.password,
         event.fullName,
+        ex
       );
       if (user != null) {
         emit(Authenticated(user: user, isAdmin: false));
       } else {
         print(state.toString());
+        print(ex.toString());
         emit(AuthError(message: 'Registration failed'));
       }
     } catch (e) {

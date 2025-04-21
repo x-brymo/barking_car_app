@@ -38,6 +38,12 @@ final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
         {
       'user_id': supabaseUser,
       'full_name': fullName,
+      'email': email,
+      'password': password,
+      'updated_at': DateTime.now().toIso8601String(),
+      'isblocked': false,
+      'isvip': false,
+      'bio': '',
       'role': AppConstants.roleClient,
       'created_at': DateTime.now().toIso8601String(),
       'avatar_url': 'https://avatars.githubusercontent.com/u/1200?v=4',

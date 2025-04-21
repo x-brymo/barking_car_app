@@ -92,7 +92,7 @@ Future<AuthResult> signIn(String email, String password) async {
 }}
 
   
-  Future<UserModel?> signUp(String email, String password, String fullName) async {
+  Future<UserModel?> signUp(String email, String password, String fullName, String msg) async {
     try {
       final response = await _supabaseService.signUp(
         email: email,
@@ -102,7 +102,8 @@ Future<AuthResult> signIn(String email, String password) async {
       print(response.toString());
        return null;
     } catch (e) {
-      print("Error When SignUP User:${e.toString()}");
+      var msg = e;
+      print("Error When SignUP User:${msg.toString()}");
       return null;
     }
   }
